@@ -1,0 +1,17 @@
+---
+- hosts:
+    - kubemasters_nodes
+    - kubenodes_nodes
+
+  vars:
+    - ansible_user: ansible  # ssh login user
+    - ansible_become: yes  # use sudo
+    - gather_facts: true
+    - ansible_become_method: sudo
+    - ansible_ssh_pass: "{{ ansible_ssh_password }}"
+    - ansible_become_pass: "{{ ansible_become_password }}"
+    - ansible_sudo_pass: "{{ ansible_sudo_password }}"
+
+  roles:
+    - setup_containerd_storage
+...
