@@ -1,0 +1,12 @@
+---
+disk: /dev/sdb
+partitions:
+  - { num: 1, start: "1MB", end: "87GB" }
+  - { num: 2, start: "87GB", end: "175GB" }
+  - { num: 3, start: "175GB", end: "262GB" }
+  - { num: 4, start: "262GB", end: "350GB" }
+vg_name: vg_containerd
+lv_name: lv_containerd
+mount_point: /var/lib/containerd
+filesystem_type: ext4
+...

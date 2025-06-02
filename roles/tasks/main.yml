@@ -1,0 +1,147 @@
+---
+- name: Install parted package
+  apt:
+    name: parted
+    state: present
+  tags:
+    - packages
+    - setup
+
+- name: Copy configure_storage_for_containerd.sh script to remote host
+  copy:
+    src: configure_storage_for_containerd.sh
+    dest: /tmp/configure_storage_for_containerd.sh
+    mode: '0755'
+  tags:
+    - setup_storage
+
+- name: Run configure_storage_for_containerd.sh script
+  command: bash /tmp/configure_storage_for_containerd.sh
+  tags:
+    - setup_storage
+
+- name: Wipe existing partition table and signatures on {{ disk }}
+  command: >
+    wipefs -a {{ disk }} &&
+    dd if=/dev/zero of={{ disk }} bs=512 count=2048 status=none
+  ignore_errors: yes
+  tags:
+    - disk
+    - wipe
+    - setup
+
+- name: Create msdos partition table on {{ disk }}
+  parted:
+    device: "{{ disk }}"
+    label: msdos
+    state: present
+  tags:
+    - disk
+    - partitioning
+    - setup
+
+- name: Create primary partitions on {{ disk }}
+  parted:
+    device: "{{ disk }}"
+    number: "{{ item.num }}"
+    part_type: primary
+    state: present
+    part_start: "{{ item.start }}"
+    part_end: "{{ item.end }}"
+  loop: "{{ partitions }}"
+  tags:
+    - disk
+    - partitioning
+    - setup
+
+- name: Inform kernel of partition changes on {{ disk }}
+  command: partprobe {{ disk }}
+  tags:
+    - disk
+    - partitioning
+    - setup
+
+- name: Remove existing logical volume {{ lv_name }} if any
+  command: lvremove -f /dev/{{ vg_name }}/{{ lv_name }}
+  ignore_errors: yes
+  tags:
+    - lvm
+    - cleanup
+
+- name: Remove existing volume group {{ vg_name }} if any
+  command: vgremove -f {{ vg_name }}
+  ignore_errors: yes
+  tags:
+    - lvm
+    - cleanup
+
+- name: Remove existing physical volume on /dev/sdb1 if any
+  command: pvremove -ff -y /dev/sdb1
+  ignore_errors: yes
+  tags:
+    - lvm
+    - cleanup
+
+- name: Create physical volume on /dev/sdb1
+  command: pvcreate /dev/sdb1
+  register: pvcreate_result
+  tags:
+    - lvm
+    - pvcreate
+    - setup
+
+- name: Create volume group {{ vg_name }} on /dev/sdb1
+  command: vgcreate {{ vg_name }} /dev/sdb1
+  when: pvcreate_result is succeeded
+  tags:
+    - lvm
+    - vgcreate
+    - setup
+
+- name: Create logical volume {{ lv_name }} using 100% free space in {{ vg_name }}
+  command: lvcreate -y -l 100%FREE -n {{ lv_name }} {{ vg_name }}
+  tags:
+    - lvm
+    - lvcreate
+    - setup
+
+- name: Format logical volume with {{ filesystem_type }} filesystem
+  filesystem:
+    fstype: "{{ filesystem_type }}"
+    dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+  tags:
+    - filesystem
+    - format
+    - setup
+
+- name: Create mount directory {{ mount_point }}
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+  tags:
+    - mount
+    - directory
+    - setup
+
+- name: Mount logical volume to {{ mount_point }}
+  mount:
+    path: "{{ mount_point }}"
+    src: "/dev/{{ vg_name }}/{{ lv_name }}"
+    fstype: "{{ filesystem_type }}"
+    opts: defaults
+    state: mounted
+  tags:
+    - mount
+    - lvm
+    - finish
+
+- name: Persist mount configuration to /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/{{ vg_name }}/{{ lv_name }} {{ mount_point }} {{ filesystem_type }} defaults 0 2"
+    state: present
+  tags:
+    - mount
+    - fstab
+    - finish
+...
