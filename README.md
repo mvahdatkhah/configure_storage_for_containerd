@@ -32,8 +32,8 @@ roles/filesconfigure_storage_for_containerd/
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/filesconfigure_storage_for_containerd.git
-cd filesconfigure_storage_for_containerd
+git clone https://github.com/mvahdatkhah/configure_storage_for_containerd.git
+cd configure_storage_for_containerd
 ```
 
 ---
@@ -103,7 +103,7 @@ Create `site.yml`:
 ### 5️⃣ Run the Playbook
 
 ```bash
-ansible-playbook -i inventory.ini site.yml --tags setup_storage
+ansible-playbook -i inventory.ini configure_storage_for_containerd .yml
 ```
 
 ---
