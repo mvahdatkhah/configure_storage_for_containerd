@@ -1,4 +1,4 @@
-# 🛠️ filesconfigure_storage_for_containerd — Ansible Role Project
+# 🛠️ files configure_storage_for_containerd — Ansible Role Project
 
 This repository provides an Ansible role to automate the setup of containerd storage using LVM on a dedicated disk (`/dev/sdb1`). It uses a Bash script to handle disk partitioning, LVM setup, filesystem formatting, and mounting.
 
