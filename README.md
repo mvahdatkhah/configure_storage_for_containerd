@@ -43,10 +43,15 @@ cd filesconfigure_storage_for_containerd
 Create an inventory file `inventory.ini`:
 
 ```ini
-[kubernetes_nodes]
-kubenode1 ansible_host=192.168.1.101
-kubenode2 ansible_host=192.168.1.102
-kubenode3 ansible_host=192.168.1.103
+[kubemasters_nodes]
+kubemaster1 ansible_host=192.168.1.101
+kubemaster1 ansible_host=192.168.1.102
+kubemaster1 ansible_host=192.168.1.103
+
+[kubenodes_nodes]
+kubenode1 ansible_host=192.168.1.103
+kubenode2 ansible_host=192.168.1.104
+kubenode3 ansible_host=192.168.1.105
 
 [all:vars]
 ansible_user=your_ssh_user
